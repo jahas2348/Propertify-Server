@@ -47,7 +47,7 @@ app.use('/', adminRouter);
 app.use('/chat', chatRouter);
 
 app.get('/', (req, res) => {
-  res.send('Welcome to Propertify');
+  res.send('Welcome to Propertify App');
 });
 
 module.exports = server;
