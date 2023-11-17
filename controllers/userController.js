@@ -257,6 +257,100 @@ const getAllPaymentsRequestsOfUser = async (req, res) => {
   }
 };
 
+//Paid
+const markPaymentRequestPaid = async (req, res) => {
+  try {
+    const { paymentRequestId } = req.params;
+
+    // Find the payment request by ID
+    const paymentRequest = await PaymentRequestModel.findById(paymentRequestId);
+
+    if (!paymentRequest) {
+      return res.status(200).json({ message: 'Payment Request not found' });
+    }
+
+    // Update the isPaid status to true
+    paymentRequest.isPaid = true;
+    await paymentRequest.save();
+
+    res.json({ status: 'success', message: 'Payment Paid Successful' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const updateUserDetails = async (req, res) => {
+  try {
+    const { username, useremail } = req.body;
+    const { userId } = req.params;
+
+    // Find the user by ID
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Use the updateUserDetails method from the user model
+    await user.updateUserDetails({ username, useremail });
+
+    res.json({ status: 'success', message: 'User details updated successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getFavouriteProperties = async (req, res) => {
+  try {
+    const { propertyIds } = req.body;
+
+    if (!propertyIds || !Array.isArray(propertyIds) || propertyIds.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Invalid property IDs provided' });
+    }
+
+    const properties = await PropertyModel.find({ _id: { $in: propertyIds } })
+      .populate('agent')
+      .populate('propertyCategory', 'categoryName');
+
+    if (properties && properties.length > 0) {
+      const modifiedProperties = properties.map((property) => {
+        const propertyData = property.toObject();
+        propertyData.propertyCategory = property.propertyCategory.categoryName;
+        propertyData.agent = property.agent;
+
+        // Format date and time in Indian format (date-time AM/PM)
+        const formattedDateTime = new Date(propertyData.createdAt).toLocaleString('en-IN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }).replace(/ /g, '-');
+
+        // Construct full URLs for propertyCoverPicture and propertyGalleryPictures
+        propertyData.propertyCoverPicture = `${BASE_URL}/public/uploads/${property.propertyCoverPicture}`;
+        propertyData.propertyGalleryPictures = propertyData.propertyGalleryPictures.map((picture) => {
+          return `${BASE_URL}/public/uploads/${picture}`;
+        });
+
+        return propertyData;
+      });
+
+      console.log('Successfully retrieved favorite properties');
+      console.log(modifiedProperties);
+      res.json({ status: 'success', properties: modifiedProperties });
+    } else {
+      res.json({ status: 'success', properties: [] });
+    }
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
 
 
 module.exports = {
@@ -268,5 +362,8 @@ module.exports = {
   identifyUser,
   sendChatMessage,
   getAllPaymentsRequestsOfUser,
+  markPaymentRequestPaid,
+  updateUserDetails,
+  getFavouriteProperties
   
 };

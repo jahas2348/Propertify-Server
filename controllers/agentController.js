@@ -224,6 +224,8 @@ const sendPaymentRequest = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   registerAgent,
   checkAgentPhoneNumber,
@@ -233,5 +235,5 @@ module.exports = {
   getAllPropertiesofAgent,
   identifyAgent,
   sendChatMessage,
-  sendPaymentRequest
+  sendPaymentRequest,
 };
