@@ -20,6 +20,10 @@ const paymentRequestSchema = new Schema({
   paymentAmount: {
     type: String,
   },
+  isPaid: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 //unique compound index

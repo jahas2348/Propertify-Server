@@ -22,9 +22,6 @@ const userSchema = new Schema({
   useremail: {
     type: String,
   },
-  // userprofile: {
-  //   type: String,
-  // },
   isLogin: {
     type: Boolean,
     default: false,
@@ -54,7 +51,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.userpassword);
 };
 
-
 // Generate Token
 userSchema.methods.generateAuthToken = function () {
   return jwt.sign({ _id: this._id, username: this.username }, config.jwtSecret, {
@@ -62,6 +58,18 @@ userSchema.methods.generateAuthToken = function () {
   });
 };
 
+// Add a method to update user details
+userSchema.methods.updateUserDetails = async function (newDetails) {
+  try {
+    // Update user details excluding the password
+    this.username = newDetails.username || this.username;
+    this.useremail = newDetails.useremail || this.useremail;
+
+    await this.save();
+  } catch (error) {
+    throw new Error('Error updating user details');
+  }
+};
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('userpassword')) {

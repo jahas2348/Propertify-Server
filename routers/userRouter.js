@@ -18,7 +18,18 @@ router.post('/api/user/addRequest', userController.addRequest);
 //Add Favourite
 router.post('/api/user/addFavouriteProperty', userController.addFavouriteProperty);
 
+//Get All Favourites
+router.post('/api/user/getFavouriteProperties', userController.getFavouriteProperties);
+
 //Get All Payment Requests of User
 router.get('/api/user/getAllPaymentRequestsofUser/:userId', userController.getAllPaymentsRequestsOfUser);
+
+// Mark Payment Request as Paid
+router.put('/api/user/markPaymentRequestPaid/:paymentRequestId', userController.markPaymentRequestPaid);
+
+// Update Profile 
+router.put('/api/user/updateUserDetails/:userId', userController.updateUserDetails);
+
+
 
 module.exports = router;
