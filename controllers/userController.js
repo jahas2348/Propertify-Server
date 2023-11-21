@@ -304,52 +304,34 @@ const updateUserDetails = async (req, res) => {
 
 const getFavouriteProperties = async (req, res) => {
   try {
-    const { propertyIds } = req.body;
+    const userId = req.params.userId;
 
-    if (!propertyIds || !Array.isArray(propertyIds) || propertyIds.length === 0) {
-      return res.status(400).json({ status: 'error', message: 'Invalid property IDs provided' });
+    // Validate if userId is provided
+    if (!userId) {
+      return res.status(400).json({ status: 'error', message: 'User ID is required' });
     }
 
-    const properties = await PropertyModel.find({ _id: { $in: propertyIds } })
-      .populate('agent')
-      .populate('propertyCategory', 'categoryName');
+    // Retrieve the user by ID
+    const user = await UserModel.findById(userId);
 
-    if (properties && properties.length > 0) {
-      const modifiedProperties = properties.map((property) => {
-        const propertyData = property.toObject();
-        propertyData.propertyCategory = property.propertyCategory.categoryName;
-        propertyData.agent = property.agent;
-
-        // Format date and time in Indian format (date-time AM/PM)
-        const formattedDateTime = new Date(propertyData.createdAt).toLocaleString('en-IN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        }).replace(/ /g, '-');
-
-        // Construct full URLs for propertyCoverPicture and propertyGalleryPictures
-        propertyData.propertyCoverPicture = `${BASE_URL}/public/uploads/${property.propertyCoverPicture}`;
-        propertyData.propertyGalleryPictures = propertyData.propertyGalleryPictures.map((picture) => {
-          return `${BASE_URL}/public/uploads/${picture}`;
-        });
-
-        return propertyData;
-      });
-
-      console.log('Successfully retrieved favorite properties');
-      console.log(modifiedProperties);
-      res.json({ status: 'success', properties: modifiedProperties });
-    } else {
-      res.json({ status: 'success', properties: [] });
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
     }
+
+    // Extract property IDs from the user's favorites array
+    const propertyIds = user.favourites.map(favorite => favorite.toString());
+
+    console.log('Successfully retrieved favorite property IDs');
+    console.log(propertyIds);
+    
+    res.json({ status: 'success', propertyIds });
   } catch (error) {
     console.error('Error:', error.message);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
+
 
 
 

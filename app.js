@@ -15,26 +15,7 @@ const path = require('path');
 
 dotenv.config();
 
-// io.on('connection', (socket) => {
-//   console.log(`A user/agent connected: ${socket.id}`);
 
-//   socket.on('identify', (role) => {
-//     socket.join(role);
-//   });
-
-//   socket.on('message', (data) => {
-//     const { roomName, message } = data;
-
-//     // Save the message to the database
-
-//     // Broadcast the message to the room
-//     io.to(roomName).emit('message', message);
-//   });
-
-//   socket.on('disconnect', () => {
-//     console.log(`A user/agent disconnected: ${socket.id}`);
-//   });
-// }); 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

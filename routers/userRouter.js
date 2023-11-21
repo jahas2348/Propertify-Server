@@ -19,7 +19,7 @@ router.post('/api/user/addRequest', userController.addRequest);
 router.post('/api/user/addFavouriteProperty', userController.addFavouriteProperty);
 
 //Get All Favourites
-router.post('/api/user/getFavouriteProperties', userController.getFavouriteProperties);
+router.get('/api/user/getFavouriteProperties/:userId', userController.getFavouriteProperties);
 
 //Get All Payment Requests of User
 router.get('/api/user/getAllPaymentRequestsofUser/:userId', userController.getAllPaymentsRequestsOfUser);
