@@ -253,11 +253,27 @@ const approveProperty = async (req, res) => {
     // Update the isApproved status of the property
     await PropertyModel.findByIdAndUpdate(propertyId, { $set: { isApproved: newIsApprovedStatus } });
 
-    res.status(200).json({ status: "Success", message: "Property status updated successfully" });
+    res.status(200).json({ status: "success", message: "Property status updated successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-module.exports = { addPropertyData, getAllProperties, deleteProperty, updateProperty, addCategory, approveProperty };
+//Approve Property
+const rejectProperty = async (req, res) => {
+  try {
+    const propertyId = req.params.propertyId;
+    const newIsApprovedStatus = req.body.isRejected;
+
+    // Update the isApproved status of the property
+    await PropertyModel.findByIdAndUpdate(propertyId, { $set: { isRejected: newIsApprovedStatus } });
+
+    res.status(200).json({ status: "success", message: "Property Rejected successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports = { addPropertyData, getAllProperties, deleteProperty, updateProperty, addCategory, approveProperty,rejectProperty };

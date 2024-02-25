@@ -13,7 +13,7 @@ router.post('/send', async (req, res) => {
     const chatMessage = new Chat({
       message,
       room: roomName,
-    });
+    }); 
 
     // Save the message to the database
     const savedMessage = await chatMessage.save();

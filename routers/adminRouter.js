@@ -39,4 +39,7 @@ router.post('/api/admin/addCategory', adminController.addCategory);
 //Approve Property
 router.patch('/api/admin/approveProperty/:propertyId', adminController.approveProperty);
 
+//Reject Property
+router.patch('/api/admin/rejectProperty/:propertyId', adminController.rejectProperty);
+
 module.exports = router;
