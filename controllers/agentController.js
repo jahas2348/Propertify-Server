@@ -33,7 +33,7 @@ const checkAgentPhoneNumber = async (req, res) => {
     console.log(existingAgent);
 
     if (existingAgent) {
-      res.json({ exists: true, message:'Agent Found Successfully'});
+      res.json({ exists: true, message: 'Agent Found Successfully' });
     } else {
       res.json({ exists: false });
     }
@@ -135,10 +135,10 @@ const getAllPropertiesofAgent = async (req, res) => {
       // Map the property data and construct image URLs
       const propertiesWithImageURLs = allProperties.map((property) => {
         const propertyData = property.toObject();
-        
+
         // Extract the categoryName from the populated propertyCategory
         propertyData.propertyCategory = property.propertyCategory.categoryName;
-        
+
 
         propertyData.propertyCoverPicture = `${BASE_URL}/public/uploads/${property.propertyCoverPicture}`;
         propertyData.propertyGalleryPictures = propertyData.propertyGalleryPictures.map((filename) => {
@@ -224,6 +224,60 @@ const sendPaymentRequest = async (req, res) => {
   }
 };
 
+//Get AllProperties Info Of Agent
+const getAllPropertiesInfoOfAgent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get all properties of the agent
+    const allProperties = await PropertyModel.find({ agent: id });
+    console.log('All Properties:', allProperties);
+
+    // Calculate counts
+    const totalCount = allProperties.length;
+    const approvedCount = allProperties.filter(property => property.isApproved).length;
+    const notApprovedCount = allProperties.filter(property => !property.isApproved).length;
+    const soldCount = allProperties.filter(property => property.isSold).length;
+
+    let totalAmountSold = "0"; // Initialize total amount as string
+
+    // Get total amount from payment requests for sold properties
+    if (soldCount > 0) {
+      // Get IDs of sold properties
+      const soldPropertyIds = allProperties.filter(property => property.isSold).map(property => property._id);
+      console.log('Sold Property IDs:', soldPropertyIds);
+      
+      // Find payment requests associated with sold properties and are paid
+      const paymentRequests = await PaymentRequestModel.find({ property: { $in: soldPropertyIds }, isPaid: true });
+      console.log('Payment Requests:', paymentRequests);
+
+      // Calculate total amount from payment requests
+      totalAmountSold = paymentRequests.reduce((total, request) => {
+        const amount = parseFloat(request.paymentAmount);
+        console.log('Payment Amount:', amount);
+        return (parseFloat(total) + amount).toString(); // Ensure string concatenation
+      }, "0");
+    }
+ 
+    console.log('Total Amount Sold:', totalAmountSold);
+
+    res.json({
+      status: 'success',
+      totalCount,
+      approvedCount,
+      notApprovedCount,
+      soldCount,
+      totalAmountSold,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+
+
+
 
 
 module.exports = {
@@ -236,5 +290,5 @@ module.exports = {
   identifyAgent,
   sendChatMessage,
   sendPaymentRequest,
+  getAllPropertiesInfoOfAgent,
 };
- 

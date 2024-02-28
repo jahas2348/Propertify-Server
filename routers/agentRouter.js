@@ -29,4 +29,7 @@ router.post('/api/agent/getAllProperties', agentController.getAllPropertiesofAge
 //Send Payment Request to User
 router.post('/api/agent/PaymentRequesttoUser', agentController.sendPaymentRequest);
 
+////Get AllProperties Info Of Agent
+router.get('/api/agent/getAllPropertiesInfoOfAgent/:id', agentController.getAllPropertiesInfoOfAgent);
+
 module.exports = router;

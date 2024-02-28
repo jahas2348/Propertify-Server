@@ -24,15 +24,24 @@ router.get('/api/admin/getAllProperties', adminController.getAllProperties);
 router.delete('/api/admin/deleteProperty/:propertyId', adminController.deleteProperty);
 
 // Update Property by Id with image uploads
+// router.put(
+//   '/api/admin/updateProperty/:propertyId',
+//   uploadMiddleware.fields([
+//     { name: 'propertyCoverPicture', maxCount: 1 },
+//     { name: 'propertyGalleryPictures', maxCount: 6 },
+//   ]),
+//   adminController.updateProperty
+// ); 
+
 router.put(
   '/api/admin/updateProperty/:propertyId',
+  // Use uploadMiddleware to handle file uploads
   uploadMiddleware.fields([
-    { name: 'propertyCoverPicture', maxCount: 1 },
-    { name: 'propertyGalleryPictures', maxCount: 6 },
+    { name: 'updatedCoverPicture', maxCount: 1 }, // Expect updatedCoverPicture as a file
+    { name: 'newGalleryPictures', maxCount: 4 }, // Expect newGalleryPictures as files
   ]),
   adminController.updateProperty
-); 
-
+);
 // Add Category
 router.post('/api/admin/addCategory', adminController.addCategory);
 

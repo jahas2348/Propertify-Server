@@ -10,6 +10,15 @@ const propertySchema = new Schema({
   propertyName: {
     type: String,
   },
+  propertyRooms: {
+    type: String,
+  },
+  propertyBathrooms: {
+    type: String,
+  },
+  propertySqft: {
+    type: String,
+  },
   propertyPrice: {
     type: String,
   },

@@ -24,6 +24,9 @@ const addPropertyData = async (req, res) => {
     const {
       agent,
       propertyName,
+      propertyRooms,
+      propertyBathrooms,
+      propertySqft,
       propertyPrice,
       propertyCategory,
       propertyCity,
@@ -57,6 +60,9 @@ const addPropertyData = async (req, res) => {
     const addPropertyData = new PropertyModel({
       agent,
       propertyName,
+      propertyRooms,
+      propertyBathrooms,
+      propertySqft,
       propertyPrice,
       propertyCategory: propertyCategoryObjectId,
       propertyCity,
@@ -88,7 +94,7 @@ const deleteProperty = async (req, res) => {
     const propertyId = req.params.propertyId;
 
     const property = await PropertyModel.findById(propertyId);
- 
+
     if (!property) {
       return res.status(404).json({ message: 'Property not found' });
     }
@@ -101,12 +107,103 @@ const deleteProperty = async (req, res) => {
   }
 };
 
+// const updateProperty = async (req, res) => {
+//   try {
+//     const propertyId = req.params.propertyId;
+
+//     const {
+//       propertyName,
+//       propertyRooms,
+//       propertyBathrooms,
+//       propertySqft,
+//       propertyPrice,
+//       propertyCategory,
+//       propertyCity,
+//       propertyState,
+//       propertyZip,
+//       propertyDescription,
+//       longitude,
+//       latitude,
+//       amenities,
+//       isApproved,
+//       removeIndexes,
+//       tags,
+//     } = req.body;
+
+//     const category = await CategoryModel.findOne({ categoryName: propertyCategory });
+
+//     if (!category) {
+//       return res.status(400).json({ status: "error", message: "Category not found" });
+//     }
+
+//     const propertyCategoryObjectId = category._id;
+//     const existingProperty = await PropertyModel.findById(propertyId);
+
+//     // Remove specified indexes from propertyGalleryPictures
+//     let updatedGalleryPictures = existingProperty.propertyGalleryPictures.filter((_, index) => {
+//       return !removeIndexes.includes(index);
+//     });
+
+//     // Handle the new images. Append them to the filtered array.
+//     if (req.files['propertyGalleryPictures']) {
+//       for (let i = 0; i < req.files['propertyGalleryPictures'].length; i++) {
+//         updatedGalleryPictures.push(req.files['propertyGalleryPictures'][i].filename);
+//       }
+//     }
+
+//     // Handle updating propertyCoverPicture (replace the old one)
+//     let updatedCoverPicture = existingProperty.propertyCoverPicture;
+
+//     if (req.files['propertyCoverPicture'] && req.files['propertyCoverPicture'][0]) {
+//       updatedCoverPicture = req.files['propertyCoverPicture'][0].filename;
+//     }
+
+//     const amenitiesArray = [];
+//     if (amenities && amenities.length > 0) {
+//       for (let i = 0; i < amenities.length; i++) {
+//         amenitiesArray.push(amenities[i]);
+//       }
+//     }
+
+//     const updates = {
+//       $set: {
+//         propertyName,
+//         propertyRooms,
+//         propertyBathrooms,
+//         propertySqft,
+//         propertyPrice,
+//         propertyCategory: propertyCategoryObjectId,
+//         propertyCity,
+//         propertyState,
+//         propertyZip,
+//         propertyDescription,
+//         longitude,
+//         latitude,
+//         amenities: amenitiesArray,
+//         isApproved,
+//         propertyGalleryPictures: updatedGalleryPictures,
+//         propertyCoverPicture: updatedCoverPicture, // Include the updated cover picture
+//         tags, // Added tags field
+//       },
+//     };
+
+//     await PropertyModel.findByIdAndUpdate(propertyId, updates);
+
+//     res.status(200).json({ status: "success", message: "Property Updated Successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Internal Server Error' });
+//   }
+// };
 const updateProperty = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
 
     const {
       propertyName,
+      propertyRooms,
+      propertyBathrooms,
+      propertySqft,
       propertyPrice,
       propertyCategory,
       propertyCity,
@@ -117,9 +214,14 @@ const updateProperty = async (req, res) => {
       latitude,
       amenities,
       isApproved,
-      removeIndexes,
       tags,
     } = req.body;
+
+    const { updatedCoverPicture, newGalleryPictures } = req.files;
+    const removedGalleryPictures = req.body.removedGalleryPictures; // Assuming removedGalleryPictures is sent as an array of strings in the request body
+
+    console.log("Updated Cover Picture:", updatedCoverPicture);
+    console.log("Removed Gallery Pictures:", removedGalleryPictures);
 
     const category = await CategoryModel.findOne({ categoryName: propertyCategory });
 
@@ -128,37 +230,39 @@ const updateProperty = async (req, res) => {
     }
 
     const propertyCategoryObjectId = category._id;
+
+    // Retrieve existing property data from the database
     const existingProperty = await PropertyModel.findById(propertyId);
 
-    // Remove specified indexes from propertyGalleryPictures
-    let updatedGalleryPictures = existingProperty.propertyGalleryPictures.filter((_, index) => {
-      return !removeIndexes.includes(index);
-    });
-
-    // Handle the new images. Append them to the filtered array.
-    if (req.files['propertyGalleryPictures']) {
-      for (let i = 0; i < req.files['propertyGalleryPictures'].length; i++) {
-        updatedGalleryPictures.push(req.files['propertyGalleryPictures'][i].filename);
-      } 
+    // Handle removed gallery pictures
+    let propertyGalleryPictures = existingProperty.propertyGalleryPictures;
+    if (removedGalleryPictures && removedGalleryPictures.length > 0) {
+      console.log("Existing Gallery Pictures:", propertyGalleryPictures);
+      // Remove the images based on the provided URLs
+      propertyGalleryPictures = propertyGalleryPictures.filter((picture) => {
+        return !removedGalleryPictures.includes(picture); // Assuming the URLs in removedGalleryPictures don't have the base URL prefix
+      });
+      console.log("Updated Gallery Pictures after removal:", propertyGalleryPictures);
     }
 
-    // Handle updating propertyCoverPicture (replace the old one)
-    let updatedCoverPicture = existingProperty.propertyCoverPicture;
-
-    if (req.files['propertyCoverPicture'] && req.files['propertyCoverPicture'][0]) {
-      updatedCoverPicture = req.files['propertyCoverPicture'][0].filename;
+    // Handle new gallery pictures
+    if (newGalleryPictures && newGalleryPictures.length > 0) {
+      // Calculate the remaining slots for new pictures
+      const remainingSlots = 4 - propertyGalleryPictures.length;
+      const newPicturesToAdd = newGalleryPictures.slice(0, remainingSlots).map(file => file.filename);
+      
+      // Add new pictures to the propertyGalleryPictures array
+      propertyGalleryPictures = [...propertyGalleryPictures, ...newPicturesToAdd];
     }
 
-    const amenitiesArray = [];
-    if (amenities && amenities.length > 0) {
-      for (let i = 0; i < amenities.length; i++) {
-        amenitiesArray.push(amenities[i]);
-      }
-    }
+    const amenitiesArray = Array.isArray(amenities) ? amenities : [amenities]; // Ensure amenities is an array
 
     const updates = {
       $set: {
         propertyName,
+        propertyRooms,
+        propertyBathrooms,
+        propertySqft,
         propertyPrice,
         propertyCategory: propertyCategoryObjectId,
         propertyCity,
@@ -169,9 +273,9 @@ const updateProperty = async (req, res) => {
         latitude,
         amenities: amenitiesArray,
         isApproved,
-        propertyGalleryPictures: updatedGalleryPictures,
-        propertyCoverPicture: updatedCoverPicture, // Include the updated cover picture
-        tags, // Added tags field
+        propertyGalleryPictures,
+        propertyCoverPicture: updatedCoverPicture ? updatedCoverPicture[0].filename : existingProperty.propertyCoverPicture, // Use existing cover picture if not updated
+        tags,
       },
     };
 
@@ -183,6 +287,7 @@ const updateProperty = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 
 
 
@@ -276,4 +381,4 @@ const rejectProperty = async (req, res) => {
   }
 };
 
-module.exports = { addPropertyData, getAllProperties, deleteProperty, updateProperty, addCategory, approveProperty,rejectProperty };
+module.exports = { addPropertyData, getAllProperties, deleteProperty, updateProperty, addCategory, approveProperty, rejectProperty };
