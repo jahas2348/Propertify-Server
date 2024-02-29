@@ -32,4 +32,4 @@ router.post('/api/agent/PaymentRequesttoUser', agentController.sendPaymentReques
 ////Get AllProperties Info Of Agent
 router.get('/api/agent/getAllPropertiesInfoOfAgent/:id', agentController.getAllPropertiesInfoOfAgent);
 
-module.exports = router;
+module.exports = router; 

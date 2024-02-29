@@ -51,4 +51,7 @@ router.patch('/api/admin/approveProperty/:propertyId', adminController.approvePr
 //Reject Property
 router.patch('/api/admin/rejectProperty/:propertyId', adminController.rejectProperty);
 
+//Get All Agents
+router.get('/api/admin/getAllAgents', adminController.getAllAgents);
+
 module.exports = router;
