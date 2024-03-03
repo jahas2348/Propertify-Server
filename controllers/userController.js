@@ -158,22 +158,46 @@ const addFavouriteProperty = async (req, res) => {
     const user = await UserModel.findById(userId);
 
     if (!user) {
-      return res.json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     if (user.favourites.includes(propertyId)) {
-      return res.json({ message: 'Property already in favourites' });
+      const index = user.favourites.indexOf(propertyId);
+      user.favourites.splice(index, 1);
+      await user.save();
+      return res.status(200).json({ message: 'Property removed from favourites' });
     }
 
     user.favourites.push(propertyId);
     await user.save();
 
-    return res.json({ message: 'Property added to favourites' });
+    return res.status(200).json({ message: 'Property added to favourites' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// Check if Property is Favorite
+const checkFavourite = async (req, res) => {
+  try {
+    const { userId, propertyId } = req.body;
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const isFavorite = user.favourites.includes(propertyId);
+
+    return res.status(200).json({ status: 'success', isFavorite });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+
 // Function to identify a user
 const identifyUser = async (socket, userId) => {
   try {
@@ -341,6 +365,7 @@ module.exports = {
   loginwithusermobNo,
   addRequest,
   addFavouriteProperty,
+  checkFavourite,
   identifyUser,
   sendChatMessage,
   getAllPaymentsRequestsOfUser,

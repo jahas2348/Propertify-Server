@@ -18,6 +18,9 @@ router.post('/api/user/addRequest', userController.addRequest);
 //Add Favourite
 router.post('/api/user/addFavouriteProperty', userController.addFavouriteProperty);
 
+//Check Favourite
+router.post('/api/user/checkFavourite', userController.checkFavourite);
+
 //Get All Favourites
 router.get('/api/user/getFavouriteProperties/:userId', userController.getFavouriteProperties);
 
