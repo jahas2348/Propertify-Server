@@ -123,12 +123,18 @@ const addRequest = async (req, res) => {
     const { agent, user, property, requestName } = req.body;
     console.log(requestName);
 
+    // Check if the property is sold
+    const soldProperty = await PropertyModel.findById(property);
+    if (soldProperty && soldProperty.isSold) {
+      return res.status(200).json({ message: 'The property has been sold.\nPlease browse through other options.' });
+    }
+
     // Attempt to create the request
     const existingRequest = await RequestModel.findOne({ agent, user, property });
 
     if (existingRequest) {
       // Handle the case where a duplicate request is detected
-      return res.status(200).json({ message: 'Request already exists\nWait for Agent Response' });
+      return res.status(200).json({ message: 'Request already exists. Wait for Agent Response.' });
     }
 
     const createRequest = new RequestModel({ agent, user, property, requestName });
@@ -148,6 +154,7 @@ const addRequest = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 
@@ -281,21 +288,66 @@ const getAllPaymentsRequestsOfUser = async (req, res) => {
   }
 };
 
-//Paid
 const markPaymentRequestPaid = async (req, res) => {
   try {
     const { paymentRequestId } = req.params;
+    console.log('Payment Request ID:', paymentRequestId);
 
     // Find the payment request by ID
     const paymentRequest = await PaymentRequestModel.findById(paymentRequestId);
+    console.log('Payment Request:', paymentRequest);
 
     if (!paymentRequest) {
-      return res.status(200).json({ message: 'Payment Request not found' });
+      console.log('Payment Request not found');
+      return res.status(404).json({ message: 'Payment Request not found' });
     }
 
     // Update the isPaid status to true
     paymentRequest.isPaid = true;
     await paymentRequest.save();
+    console.log('Payment Request Updated:', paymentRequest);
+
+    // Find the request related to this payment
+    const relatedRequest = await RequestModel.findOne({
+      agent: paymentRequest.agent,
+      user: paymentRequest.user,
+      property: paymentRequest.property,
+    });
+    console.log('Related Request:', relatedRequest);
+
+    if (relatedRequest) {
+      // Delete the related request
+      await RequestModel.deleteOne({ _id: relatedRequest._id });
+      console.log('Related Request Deleted');
+
+      // Update the property's isSold status to true
+      const updatedProperty = await PropertyModel.findByIdAndUpdate(
+        paymentRequest.property,
+        { isSold: true },
+        { new: true }
+      );
+      console.log('Property Updated:', updatedProperty);
+
+      // Remove the property from every user's favorites
+      await UserModel.updateMany(
+        { favourites: paymentRequest.property },
+        { $pull: { favourites: paymentRequest.property } }
+      );
+      console.log('Property removed from user favourites');
+
+      // Update user and agent data by removing the request references
+      await UserModel.findByIdAndUpdate(
+        paymentRequest.user,
+        { $pull: { requests: relatedRequest._id } }
+      );
+      console.log('User Data Updated');
+
+      await AgentModel.findByIdAndUpdate(
+        paymentRequest.agent,
+        { $pull: { requests: relatedRequest._id } }
+      );
+      console.log('Agent Data Updated');
+    }
 
     res.json({ status: 'success', message: 'Payment Paid Successful' });
   } catch (error) {
@@ -303,6 +355,8 @@ const markPaymentRequestPaid = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 
 const updateUserDetails = async (req, res) => {
   try {
