@@ -6,16 +6,15 @@ const adminRouter = require('./routers/adminRouter');
 const chatRouter = require('./routers/chatRouter');
 const dotenv = require('dotenv');
 const http = require('http');
+const https = require('https'); // Import the https module
 const socketIo = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 const path = require('path');
- 
+const cron = require("node-cron");
 
 dotenv.config();
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -29,7 +28,6 @@ app.use('/', adminRouter);
 // Add the chat route
 app.use('/chat', chatRouter);
 
-
 // Serve static files from the root directory
 app.use(express.static(path.join(__dirname, '')));
  
@@ -40,6 +38,15 @@ app.get('/privacypolicy', (req, res) => {
 
 app.get('/', (req, res) => {
   res.send('Welcome to Propertify App');
+});
+
+cron.schedule('*/25 * * * *', () => {
+  console.log('Pinging server to keep it alive...');
+  https.get('https://propertifyapp.online/', (res) => {
+    console.log(`Ping response: ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error('Ping error:', err.message);
+  });
 });
 
 module.exports = server;
