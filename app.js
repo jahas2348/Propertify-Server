@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to Propertify App');
 });
 
-cron.schedule('*/25 * * * *', () => {
+cron.schedule('*/10 * * * *', () => {
   console.log('Pinging server to keep it alive...');
   https.get('https://propertifyapp.online/', (res) => {
     console.log(`Ping response: ${res.statusCode}`);
