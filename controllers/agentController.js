@@ -9,7 +9,7 @@ dotenv.config();
 const BASE_URL = process.env.BASE_URL;
 
 // Register Agent
-const registerAgent = async (req, res, next) => {
+const registerAgent = async (req, res) => {
   try {
     const { email, fullname, mobNo, status } = req.body;
 
